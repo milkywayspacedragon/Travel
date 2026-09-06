@@ -24,3 +24,5 @@ jobs:
           git add ibiza-2027/assets/images/ibiza-pins-map.jpg
           git commit -m "Rebuild Ibiza map image"
           git push
+
+# Both verified source chunks are now present on main.
