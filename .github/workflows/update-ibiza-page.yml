@@ -1,0 +1,54 @@
+name: Update Ibiza page
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-page:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply Ibiza page updates
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('ibiza-2027/index.html')
+          s = p.read_text()
+
+          # Swap the tiny local cabin asset for a larger official campsite bungalow photo.
+          s = s.replace('assets/images/cabin.jpg', 'https://campinglaplayaibiza.com/wp-content/uploads/2024/01/2R0A7706-scaled.jpg')
+          s = s.replace('Wooden cabin accommodation at Camping La Playa', 'Bungalow terrace accommodation at Camping La Playa')
+          s = s.replace('Cabin-style accommodation', 'Bungalow terrace accommodation')
+
+          # Add a Map nav item once.
+          if 'href="#map">Map</a>' not in s:
+              s = s.replace('<a href="#local">Local stuff</a>', '<a href="#local">Local stuff</a><a href="#map">Map</a>')
+
+          # Add map styling once.
+          if '.map-stops{' not in s:
+              css = '''\n.map-card{padding:24px}.map-stops{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.map-stop{display:inline-flex;align-items:center;gap:7px;text-decoration:none;padding:10px 13px;border-radius:999px;background:white;border:1px solid rgba(42,40,38,.12);font-weight:750}.map-stop:before{content:"📍"}.map-route{margin-top:18px}.map-note{font-size:.9rem;color:var(--muted);margin-top:12px}\n'''
+              s = s.replace('</style>', css + '</style>')
+
+          # Add a key-free Google Maps section once. A true embedded custom-pin map can later be swapped in from Google My Maps.
+          if 'id="map"' not in s:
+              section = '''<section id="map"><div class="wrap"><div class="section-head"><h2>Trip map</h2><p>All the places we care about, ready to open in Google Maps.</p></div><div class="card map-card"><h3>📍 Ibiza pins</h3><p>Open the whole set as a Google Maps route, or jump straight to an individual location.</p><div class="map-route"><a class="btn primary" href="https://www.google.com/maps/dir/?api=1&amp;origin=Camping+La+Playa+Ibiza&amp;destination=528+Ibiza&amp;travelmode=driving&amp;waypoints=Punta+Arabi+Hippy+Market%7CAkasha+Ibiza%7CPikes+Ibiza" rel="noopener" target="_blank">Open all stops in Google Maps ↗</a></div><div class="map-stops"><a class="map-stop" href="https://www.google.com/maps/search/?api=1&amp;query=Camping+La+Playa+Ibiza" rel="noopener" target="_blank">Camping La Playa</a><a class="map-stop" href="https://www.google.com/maps/search/?api=1&amp;query=Punta+Arabi+Hippy+Market+Ibiza" rel="noopener" target="_blank">Punta Arabí</a><a class="map-stop" href="https://www.google.com/maps/search/?api=1&amp;query=Akasha+Ibiza" rel="noopener" target="_blank">Akasha</a><a class="map-stop" href="https://www.google.com/maps/search/?api=1&amp;query=Pikes+Ibiza" rel="noopener" target="_blank">Pikes</a><a class="map-stop" href="https://www.google.com/maps/search/?api=1&amp;query=528+Ibiza" rel="noopener" target="_blank">528 Ibiza</a></div><p class="map-note">For a true embedded Google map with all five pins, we can swap this panel for a Google My Maps embed later without putting an API key in the public repo.</p></div></div></section>'''
+              marker = '<section><div class="wrap"><div class="disclaimer">'
+              s = s.replace(marker, section + marker)
+
+          p.write_text(s)
+          PY
+      - name: Commit if changed
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "milkywayspacedragon"
+          git config user.email "325719968+milkywayspacedragon@users.noreply.github.com"
+          git add ibiza-2027/index.html
+          git commit -m "Improve Ibiza accommodation image and map"
+          git push
