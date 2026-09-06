@@ -1,0 +1,31 @@
+name: Refresh Ibiza image cache
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Version image URLs
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('ibiza-2027/index.html')
+          s = p.read_text()
+          s = s.replace('assets/images/cabin.webp"', 'assets/images/cabin.webp?v=2"')
+          s = s.replace('assets/images/ibiza-pins-map.jpg"', 'assets/images/ibiza-pins-map.jpg?v=2"')
+          p.write_text(s)
+      - name: Commit if changed
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "milkywayspacedragon"
+          git config user.email "325719968+milkywayspacedragon@users.noreply.github.com"
+          git add ibiza-2027/index.html
+          git commit -m "Refresh Ibiza image cache"
+          git push
