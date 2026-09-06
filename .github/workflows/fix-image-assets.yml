@@ -1,4 +1,4 @@
-name: Fix Ibiza image references
+name: Rebuild Ibiza map image
 
 on:
   push:
@@ -8,32 +8,19 @@ permissions:
   contents: write
 
 jobs:
-  fix:
+  rebuild:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Point page at verified image assets
-        shell: python
+      - name: Rebuild and verify map image
         run: |
-          from pathlib import Path
-          import re
-
-          p = Path('ibiza-2027/index.html')
-          s = p.read_text()
-          s = s.replace('https://campinglaplayaibiza.com/wp-content/uploads/2024/01/2R0A7706-scaled.jpg', 'assets/images/cabin.webp')
-          s = re.sub(
-              r'<figure class="map-preview">.*?</figure>',
-              '<figure class="map-preview"><img src="assets/images/ibiza-pins-map.jpg" alt="Map of Ibiza showing Camping La Playa, Hippy Market Punta Arabí, Akasha Ibiza, Pikes Ibiza and 528 Ibiza pinned."/><figcaption>Camping La Playa, Punta Arabí, Akasha, Pikes and 528 across the island.</figcaption></figure>',
-              s,
-              count=1,
-              flags=re.S,
-          )
-          p.write_text(s)
+          cat ibiza-2027/assets/images/map.part1.b64 ibiza-2027/assets/images/map.part2.b64 | tr -d '\n' | base64 -d > ibiza-2027/assets/images/ibiza-pins-map.jpg
+          test "$(wc -c < ibiza-2027/assets/images/ibiza-pins-map.jpg)" -eq 13288
       - name: Commit if changed
         run: |
-          if git diff --quiet; then exit 0; fi
+          if git diff --quiet -- ibiza-2027/assets/images/ibiza-pins-map.jpg; then exit 0; fi
           git config user.name "milkywayspacedragon"
           git config user.email "325719968+milkywayspacedragon@users.noreply.github.com"
-          git add ibiza-2027/index.html
-          git commit -m "Use verified Ibiza map image"
+          git add ibiza-2027/assets/images/ibiza-pins-map.jpg
+          git commit -m "Rebuild Ibiza map image"
           git push
