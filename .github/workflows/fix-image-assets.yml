@@ -1,7 +1,8 @@
-name: Fix Ibiza image assets
+name: Fix Ibiza image references
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
 
 permissions:
   contents: write
@@ -11,37 +12,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Replace broken image files from embedded data
+      - name: Point page at verified image assets
         shell: python
         run: |
           from pathlib import Path
-          import base64, re
+          import re
 
-          page = Path('ibiza-2027/index.html')
-          s = page.read_text()
-
-          cabin_src = Path('ibiza-2027/assets/images/cabin.jpg')
-          map_src = Path('ibiza-2027/assets/images/ibiza-pins-map.webp')
-
-          # Build valid image files from the inline data already present in the page source backup.
-          backup = Path('ibiza-2027/index-inline-backup.html')
-          if backup.exists():
-              b = backup.read_text()
-              m = re.search(r'data:image/jpeg;base64,([^\"]+)', b)
-              if m:
-                  cabin_src.write_bytes(base64.b64decode(m.group(1)))
-              m = re.search(r'data:image/webp;base64,([^\"]+)', b)
-              if m:
-                  map_src.write_bytes(base64.b64decode(m.group(1)))
-
-          s = s.replace('https://campinglaplayaibiza.com/wp-content/uploads/2024/01/2R0A7706-scaled.jpg','assets/images/cabin.jpg')
-          s = re.sub(r'<figure class="map-preview">.*?</figure>', '<figure class="map-preview"><img src="assets/images/ibiza-pins-map.webp" alt="Map of Ibiza showing Camping La Playa, Hippy Market Punta Arabí, Akasha Ibiza, Pikes Ibiza and 528 Ibiza pinned."/><figcaption>Camping La Playa, Punta Arabí, Akasha, Pikes and 528 across the island.</figcaption></figure>', s, count=1, flags=re.S)
-          page.write_text(s)
-
-      - name: Commit
+          p = Path('ibiza-2027/index.html')
+          s = p.read_text()
+          s = s.replace('https://campinglaplayaibiza.com/wp-content/uploads/2024/01/2R0A7706-scaled.jpg', 'assets/images/cabin.webp')
+          s = re.sub(
+              r'<figure class="map-preview">.*?</figure>',
+              '<figure class="map-preview"><img src="assets/images/ibiza-pins-map.webp" alt="Map of Ibiza showing Camping La Playa, Hippy Market Punta Arabí, Akasha Ibiza, Pikes Ibiza and 528 Ibiza pinned."/><figcaption>Camping La Playa, Punta Arabí, Akasha, Pikes and 528 across the island.</figcaption></figure>',
+              s,
+              count=1,
+              flags=re.S,
+          )
+          p.write_text(s)
+      - name: Commit if changed
         run: |
+          if git diff --quiet; then exit 0; fi
           git config user.name "milkywayspacedragon"
           git config user.email "325719968+milkywayspacedragon@users.noreply.github.com"
-          git add ibiza-2027/index.html ibiza-2027/assets/images/cabin.jpg ibiza-2027/assets/images/ibiza-pins-map.webp
-          git commit -m "Fix Ibiza image assets" || exit 0
+          git add ibiza-2027/index.html
+          git commit -m "Use verified Ibiza image assets"
           git push
