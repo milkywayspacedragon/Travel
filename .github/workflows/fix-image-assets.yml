@@ -23,7 +23,7 @@ jobs:
           s = s.replace('https://campinglaplayaibiza.com/wp-content/uploads/2024/01/2R0A7706-scaled.jpg', 'assets/images/cabin.webp')
           s = re.sub(
               r'<figure class="map-preview">.*?</figure>',
-              '<figure class="map-preview"><img src="assets/images/ibiza-pins-map.webp" alt="Map of Ibiza showing Camping La Playa, Hippy Market Punta Arabí, Akasha Ibiza, Pikes Ibiza and 528 Ibiza pinned."/><figcaption>Camping La Playa, Punta Arabí, Akasha, Pikes and 528 across the island.</figcaption></figure>',
+              '<figure class="map-preview"><img src="assets/images/ibiza-pins-map.jpg" alt="Map of Ibiza showing Camping La Playa, Hippy Market Punta Arabí, Akasha Ibiza, Pikes Ibiza and 528 Ibiza pinned."/><figcaption>Camping La Playa, Punta Arabí, Akasha, Pikes and 528 across the island.</figcaption></figure>',
               s,
               count=1,
               flags=re.S,
@@ -35,5 +35,5 @@ jobs:
           git config user.name "milkywayspacedragon"
           git config user.email "325719968+milkywayspacedragon@users.noreply.github.com"
           git add ibiza-2027/index.html
-          git commit -m "Use verified Ibiza image assets"
+          git commit -m "Use verified Ibiza map image"
           git push
