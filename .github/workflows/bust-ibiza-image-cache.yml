@@ -29,3 +29,5 @@ jobs:
           git add ibiza-2027/index.html
           git commit -m "Refresh Ibiza image cache"
           git push
+
+# Trigger once now that the verified image files are in place.
