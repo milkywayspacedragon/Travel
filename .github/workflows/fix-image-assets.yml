@@ -14,7 +14,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Rebuild and verify map image
         run: |
-          cat ibiza-2027/assets/images/map.part1.b64 ibiza-2027/assets/images/map.part2.b64 | tr -d '\n' | base64 -d > ibiza-2027/assets/images/ibiza-pins-map.jpg
+          {
+            head -c 3000 ibiza-2027/assets/images/map2.part1.b64
+            head -c 3000 ibiza-2027/assets/images/map2.part2.b64
+            head -c 3000 ibiza-2027/assets/images/map2.part3.b64
+            head -c 3000 ibiza-2027/assets/images/map2.part4.b64
+            head -c 3000 ibiza-2027/assets/images/map2.part5.b64
+            head -c 2720 ibiza-2027/assets/images/map2.part6.b64
+          } | base64 -d > ibiza-2027/assets/images/ibiza-pins-map.jpg
           test "$(wc -c < ibiza-2027/assets/images/ibiza-pins-map.jpg)" -eq 13288
       - name: Commit if changed
         run: |
@@ -24,5 +31,3 @@ jobs:
           git add ibiza-2027/assets/images/ibiza-pins-map.jpg
           git commit -m "Rebuild Ibiza map image"
           git push
-
-# Both verified source chunks are now present on main.
